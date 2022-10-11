@@ -24,33 +24,33 @@ Editing this module may result in script errors, and impede functionality, pleas
 
 ]]--
 
-local Settings = script.Settings
+local Settings = script.Settings -- Getting the settings folder and recognizing its descendants
 local Warnings = Settings.Warnings
 local Debug = Settings.Debug
 
 function NPCBHVR.CreateIdentifier(CharacterObject)
-	local UniqueIdentification = Instance.new("NumberValue", CharacterObject)
+	local UniqueIdentification = Instance.new("NumberValue", CharacterObject) -- Create the NumberValue instance to reference later for nodes and movement
 	UniqueIdentification.Name = "UniqueIdentification"
-	UniqueIdentification.Value = math.floor(math.random(1,999999999))
+	UniqueIdentification.Value = math.floor(math.random(1,999999999)) -- Assigning it a unique value
 	
-	return UniqueIdentification
+	return UniqueIdentification -- Returning this value to be used later down the line
 end
 
 function NPCBHVR.CreateNode(UniqueIdentification, NodePosition)
-	local EndProduct
+	local EndProduct -- This value will be turned into a node to be returned
 	for _,v in pairs(workspace:GetChildren()) do
-		if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("UniqueIdentification") then
-			if v:WaitForChild("UniqueIdentification", 5).Value == UniqueIdentification.Value then
-				if #v:WaitForChild("UniqueIdentification", 5):GetChildren() <= 0 then
-					local NodesFolder = Instance.new("Folder", v:WaitForChild("UniqueIdentification", 5)); NodesFolder.Name = "Nodes" 
-					local NodeCount = Instance.new("NumberValue", NodesFolder); NodeCount.Name = "NodeCount"
-					local Moving = Instance.new("BoolValue", v:WaitForChild("UniqueIdentification", 5)); Moving.Name = "Moving"
+		if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("UniqueIdentification") then -- Checking if the Character has a UniqueIdentifiers, meaning it is a registered NPC
+			if v:WaitForChild("UniqueIdentification", 5).Value == UniqueIdentification.Value then -- If so, check if it is the NPC you are referencing through ARG 2
+				if #v:WaitForChild("UniqueIdentification", 5):GetChildren() <= 0 then -- Check if anything exists in the UniqueIdentification Instance, if not then
+					local NodesFolder = Instance.new("Folder", v:WaitForChild("UniqueIdentification", 5)); NodesFolder.Name = "Nodes"  -- Create node storage
+					local NodeCount = Instance.new("NumberValue", NodesFolder); NodeCount.Name = "NodeCount" -- Count the nodes to assign them in order later on
+					local Moving = Instance.new("BoolValue", v:WaitForChild("UniqueIdentification", 5)); Moving.Name = "Moving" -- Determine whether the character is already moving
 				end
-				v:WaitForChild("UniqueIdentification", 5):WaitForChild("Nodes", 5):WaitForChild("NodeCount").Value += 1
-				local NewNode = Instance.new("Vector3Value", v:WaitForChild("UniqueIdentification", 5):WaitForChild("Nodes", 5))
-				NewNode.Name = "Node:" .. tostring(v:WaitForChild("UniqueIdentification", 5):WaitForChild("Nodes", 5):WaitForChild("NodeCount").Value)
-				NewNode.Value = NodePosition
-				EndProduct = NewNode
+				v:WaitForChild("UniqueIdentification", 5):WaitForChild("Nodes", 5):WaitForChild("NodeCount").Value += 1 -- Progress in the amount of nodes when making a new node
+				local NewNode = Instance.new("Vector3Value", v:WaitForChild("UniqueIdentification", 5):WaitForChild("Nodes", 5)) -- Create the new node and assign its parent
+				NewNode.Name = "Node:" .. tostring(v:WaitForChild("UniqueIdentification", 5):WaitForChild("Nodes", 5):WaitForChild("NodeCount").Value) -- Assign the node a name that can be easily split later on for table storage
+				NewNode.Value = NodePosition -- Give the nodes position in ARG 2 over to the Vector3 value
+				EndProduct = NewNode -- Make end product and newnode one and the same
 			else
 				if Warnings.Value == true then warn("Critical Error (CreateNode): UniqueIdentification does not match") end
 				warn(UniqueIdentification.Value); warn(v.UniqueIdentification.Value)
@@ -58,7 +58,7 @@ function NPCBHVR.CreateNode(UniqueIdentification, NodePosition)
 		end
 	end
 	
-	return EndProduct
+	return EndProduct -- Return the EndProduct AKA the new node for reference later on
 end
 
 --[[
@@ -70,29 +70,29 @@ Past this point is NPC Movement, tampering with this could very well cause the s
 
 ]]--
 
-function NPCBHVR.UnobstructedWalkTo(UniqueIdentification, Node)
+function NPCBHVR.UnobstructedWalkTo(UniqueIdentification, Node) -- Here a node is passed through for a single node movement
 	for _,v in pairs(workspace:GetChildren()) do
 		if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("UniqueIdentification") then
 			if v:WaitForChild("UniqueIdentification", 5).Value == UniqueIdentification.Value then
-				if v:WaitForChild("UniqueIdentification", 5):WaitForChild("Moving", 5).Value == false then
+				if v:WaitForChild("UniqueIdentification", 5):WaitForChild("Moving", 5).Value == false then -- Check to see if the NPC is currently moving, if not, proceed, else warn the user at line 103
 					v:WaitForChild("UniqueIdentification", 5):WaitForChild("Moving", 5).Value = true
-					if Debug.Value == true then
-						if Warnings.Value == true then warn("Procedure (Settings): Debug is true, Nodes and Tracking will appear") end
-						local NodeClone = Debug.Node:Clone()
+					if Debug.Value == true then -- Debug makes it to where nodes are visible when the NPC is moving, and shows their pathing as well, when disabled the script still functions normally
+						if Warnings.Value == true then warn("Procedure (Settings): Debug is true, Nodes and Tracking will appear") end -- Warn them that DEBUG is on in-case of them not wanting it on
+						local NodeClone = Debug.Node:Clone() -- Cloning the Nodes debug part
 						NodeClone.Parent = v
-						NodeClone.Position = Node.Value
+						NodeClone.Position = Node.Value -- Moving it to the node that is passed through
 						
-						local HRPAttachment = Instance.new("Attachment", v:WaitForChild("HumanoidRootPart", 5))
+						local HRPAttachment = Instance.new("Attachment", v:WaitForChild("HumanoidRootPart", 5)) -- Attaching beam to the HRP and Node to show pathing
 						local NodeCloneAttachment = NodeClone.Attachment
 						local NodeCloneBeam = NodeClone.Attachment.Beam
 						
-						NodeCloneBeam.Attachment0 = HRPAttachment; NodeCloneBeam.Attachment1 = NodeCloneAttachment
+						NodeCloneBeam.Attachment0 = HRPAttachment; NodeCloneBeam.Attachment1 = NodeCloneAttachment -- Attaching beam to the HRP and Node to show pathing
 						
-						v:WaitForChild("Humanoid", 5):MoveTo(Node.Value)
-						v:WaitForChild("Humanoid", 5).MoveToFinished:Wait()
-						v:WaitForChild("UniqueIdentification", 5):WaitForChild("Moving", 5).Value = false
+						v:WaitForChild("Humanoid", 5):MoveTo(Node.Value) -- Moving the NPC to the nodes position
+						v:WaitForChild("Humanoid", 5).MoveToFinished:Wait() -- Waiting for the NPC to arrive
+						v:WaitForChild("UniqueIdentification", 5):WaitForChild("Moving", 5).Value = false -- Reverting them back to being still in the moving value
 						
-						game.Debris:AddItem(NodeClone, 0)
+						game.Debris:AddItem(NodeClone, 0) -- removing node
 						game.Debris:AddItem(HRPAttachment, 1)
 					else
 						v:WaitForChild("Humanoid", 5):MoveTo(Node.Value)
@@ -107,30 +107,30 @@ function NPCBHVR.UnobstructedWalkTo(UniqueIdentification, Node)
 	end
 end
 
-function NPCBHVR.UnobstructedWalkToAllNodes(UniqueIdentification)
+function NPCBHVR.UnobstructedWalkToAllNodes(UniqueIdentification) -- Here a UniqueIdentification is passed through to have the NPC move through all nodes in the order they were added
 	for _,v in pairs(workspace:GetChildren()) do
 		if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("UniqueIdentification") then
 			if v:WaitForChild("UniqueIdentification", 5).Value == UniqueIdentification.Value then
-				local Nodes = v:WaitForChild("UniqueIdentification", 5):WaitForChild("Nodes", 5):GetChildren()
-				local ProperNodes = {}
+				local Nodes = v:WaitForChild("UniqueIdentification", 5):WaitForChild("Nodes", 5):GetChildren() -- Array of nodes
+				local ProperNodes = {} -- Table of nodes in number order
 				
 				for i,v in pairs(Nodes) do
-					if v.Name == "NodeCount" then
+					if v.Name == "NodeCount" then -- Ignoring the NodeCount instance and warning that I did so
 						if Warnings.Value == true then warn("Procedure (UnobstructedWalkToAllNodes): Ignoring the instance 'NodeCount'") end
 					else
-						local A = string.split(v.Name, ":")
+						local A = string.split(v.Name, ":") -- Splitting the name of the nodes to get the number value
 
-						for ST1, ST2 in pairs(A) do
-							local B = tonumber(ST2)
-							if B ~= nil then
-								ProperNodes[B] = v.Value
+						for ST1, ST2 in pairs(A) do -- indexing this array to access the number
+							local B = tonumber(ST2) -- Converting the numberstring into a normal number
+							if B ~= nil then -- Making sure that it isn't nil before passing it onto the array
+								ProperNodes[B] = v.Value -- Adding the node to the array
 							end
 						end
 					end
 				end
 				
-				for number, position in pairs(ProperNodes) do
-					if Debug.Value == true then
+				for number, position in pairs(ProperNodes) do -- Cycling through the array and moving to the nodes using the same method as the previous function
+					if Debug.Value == true then -- again, debug is toggleable
 						if Warnings.Value == true then warn("Procedure (Settings): Debug is true, Nodes and Tracking will appear") end
 						local NodeClone = Debug.Node:Clone()
 						NodeClone.Parent = v
@@ -158,5 +158,3 @@ function NPCBHVR.UnobstructedWalkToAllNodes(UniqueIdentification)
 end
 
 return NPCBHVR
-
--- Thanks for using my Module :D
