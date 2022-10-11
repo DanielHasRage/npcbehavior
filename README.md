@@ -1,4 +1,4 @@
-# npcbehavior
+# NPC Behavior
 This is a ModuleScript for ROBLOX I am currently working on developing.
 
 This is still in its BETA phases.
