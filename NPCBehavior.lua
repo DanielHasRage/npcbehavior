@@ -158,3 +158,5 @@ function NPCBHVR.UnobstructedWalkToAllNodes(UniqueIdentification)
 end
 
 return NPCBHVR
+
+-- Thanks for using my Module :D
